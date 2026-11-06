@@ -1,4 +1,4 @@
-export const generateTurnConditions = (players, settings, hasPreviousTurns) => {
+export const generateTurnConditions = (players, settings, hasPreviousTurns, excludedTypes = []) => {
   const conditions = {};
 
   // 1. Theme count (1 to themeMax)
@@ -23,24 +23,31 @@ export const generateTurnConditions = (players, settings, hasPreviousTurns) => {
   const availableTypes = hasPreviousTurns
     ? [0, 1, 2, 3, 4, 5, 6, 7, 8]
     : [0, 1, 2, 3, 4, 5, 6];
-  // Weighted choice. Missing weights (old saved settings) default to 1.
-  const candidates = availableTypes.map(type => {
+  // Keep only positively weighted conditions. For consecutive-turn prevention,
+  // first exclude both the previous turn and the current reroll (when possible).
+  const configured = availableTypes.map(type => {
     const rawWeight = settings.scoreConditionWeights?.[type] ?? (type < 7 ? 2 : 1);
     const weight = Number(rawWeight);
     return { type, weight: Number.isFinite(weight) && weight > 0 ? weight : 0 };
-  });
-  const weightTotal = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
-  // Safeguard against invalid old data / all-zero manually edited storage.
-  let scoreType;
-  if (weightTotal === 0) {
-    scoreType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
-  } else {
-    let selection = Math.random() * weightTotal;
-    scoreType = candidates.find(candidate => {
-      selection -= candidate.weight;
-      return candidate.weight > 0 && selection < 0;
-    })?.type ?? candidates.findLast(candidate => candidate.weight > 0).type;
+  }).filter(candidate => candidate.weight > 0);
+  // Malformed stored settings should never prevent a turn from starting.
+  const pool = configured.length > 0
+    ? configured
+    : availableTypes.map(type => ({ type, weight: 1 }));
+  const excluded = [...new Set(excludedTypes.filter(type => Number.isInteger(type)))];
+  let candidates = pool.filter(candidate => !excluded.includes(candidate.type));
+  if (candidates.length === 0 && excluded.length > 1) {
+    // Prioritize the previous completed turn over avoiding the current reroll.
+    candidates = pool.filter(candidate => candidate.type !== excluded[0]);
   }
+  // A single enabled condition is unavoidable, so allow it as a final fallback.
+  if (candidates.length === 0) candidates = pool;
+  const weightTotal = candidates.reduce((sum, candidate) => sum + candidate.weight, 0);
+  let selection = Math.random() * weightTotal;
+  const scoreType = candidates.find(candidate => {
+    selection -= candidate.weight;
+    return selection < 0;
+  })?.type ?? candidates[candidates.length - 1].type;
   conditions.scorePoint = { type: scoreType };
 
   const minTarget = settings.scoreTargetMin ?? 85;
