@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+const DEFAULT_SETTINGS = {
+  themeMax: 3,
+  rankTargets: 1,
+  sashiumaPairs: 1,
+  scoreMargin: 2,
+  scoreTargetMin: 85,
+  scoreTargetMax: 95,
+  scoreConditionWeights: Array(9).fill(1)
+};
+
 const GameContext = createContext();
 
 export const useGameContext = () => useContext(GameContext);
@@ -27,13 +37,15 @@ export const GameProvider = ({ children }) => {
 
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem('kd_settings');
-    return saved ? JSON.parse(saved) : {
-      themeMax: 3,
-      rankTargets: 1, // How many ranks to target
-      sashiumaPairs: 1, // How many pairs for sashiuma
-      scoreMargin: 2, // ±2 for range target
-      scoreTargetMin: 85,
-      scoreTargetMax: 95
+    if (!saved) return { ...DEFAULT_SETTINGS };
+    const previous = JSON.parse(saved);
+    return {
+      ...DEFAULT_SETTINGS,
+      ...previous,
+      // Preserve previously stored weights, filling newly added entries with 1.
+      scoreConditionWeights: DEFAULT_SETTINGS.scoreConditionWeights.map((weight, i) =>
+        previous.scoreConditionWeights?.[i] ?? weight
+      )
     };
   });
 
