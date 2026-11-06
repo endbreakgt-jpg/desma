@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+const DEFAULT_SCORE_WEIGHTS = [2, 2, 2, 2, 2, 2, 2, 1, 1];
+
 const DEFAULT_SETTINGS = {
   themeMax: 3,
   rankTargets: 1,
   sashiumaPairs: 1,
-  scoreMargin: 2,
+  scoreMargin: 5,
   scoreTargetMin: 85,
   scoreTargetMax: 95,
-  scoreConditionWeights: Array(9).fill(1)
+  scoreConditionWeights: DEFAULT_SCORE_WEIGHTS
 };
 
 const GameContext = createContext();
@@ -39,13 +41,18 @@ export const GameProvider = ({ children }) => {
     const saved = localStorage.getItem('kd_settings');
     if (!saved) return { ...DEFAULT_SETTINGS };
     const previous = JSON.parse(saved);
+    // Migrate the former untouched defaults without overwriting customized settings.
+    const legacyWeights = previous.scoreConditionWeights;
+    const isLegacyWeights = Array.isArray(legacyWeights) &&
+      legacyWeights.length === 9 && legacyWeights.every(weight => weight === 1);
+    const isUntouchedLegacy = isLegacyWeights && previous.scoreMargin === 2;
     return {
       ...DEFAULT_SETTINGS,
       ...previous,
-      // Preserve previously stored weights, filling newly added entries with 1.
-      scoreConditionWeights: DEFAULT_SETTINGS.scoreConditionWeights.map((weight, i) =>
-        previous.scoreConditionWeights?.[i] ?? weight
-      )
+      scoreMargin: isUntouchedLegacy ? 5 : (previous.scoreMargin ?? 5),
+      scoreConditionWeights: isLegacyWeights
+        ? [...DEFAULT_SCORE_WEIGHTS]
+        : DEFAULT_SCORE_WEIGHTS.map((weight, i) => previous.scoreConditionWeights?.[i] ?? weight)
     };
   });
 
