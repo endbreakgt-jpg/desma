@@ -1,25 +1,12 @@
 import React, { useState } from 'react';
 import { useGameContext } from '../store/GameContext';
+import DifficultySettings from './DifficultySettings';
 import { Play, User, UserPlus, X, Settings2, GripVertical, RotateCcw } from 'lucide-react';
 
 const SetupScreen = () => {
-  const { players, startGame, settings, setSettings, resetGame } = useGameContext();
+  const { players, startGame, resetGame } = useGameContext();
   const [localPlayers, setLocalPlayers] = useState(players);
   const [showSettings, setShowSettings] = useState(false);
-  const [scoreMinInput, setScoreMinInput] = useState(String(settings.scoreTargetMin ?? 85));
-  const [scoreMaxInput, setScoreMaxInput] = useState(String(settings.scoreTargetMax ?? 95));
-
-  // Keep the draft as text so users can clear and replace digits freely.
-  const commitScoreTarget = (key, input, setInput) => {
-    const value = input.trim() === '' ? NaN : Number(input);
-    if (Number.isInteger(value) && value >= 0) {
-      setSettings(prev => ({ ...prev, [key]: value }));
-      setInput(String(value));
-    } else {
-      setInput(String(settings[key] ?? (key === 'scoreTargetMin' ? 85 : 95)));
-    }
-  };
-
   const togglePlayer = (id) => {
     setLocalPlayers(localPlayers.map(p =>
       p.id === id ? { ...p, active: !p.active } : p
@@ -82,64 +69,7 @@ const SetupScreen = () => {
         </button>
       </div>
 
-      {showSettings && (
-        <div className="glass-panel animate-fade-in" style={{ marginBottom: '2rem', background: 'rgba(0,0,0,0.3)' }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--accent)' }}>GM用 難易度調整</h3>
-          <div className="grid-cols-2">
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>最大テーマ数</label>
-              <select
-                value={settings.themeMax}
-                onChange={(e) => setSettings({ ...settings, themeMax: parseInt(e.target.value) })}
-              >
-                <option value={1}>1個 (Easy)</option>
-                <option value={2}>2個 (Normal)</option>
-                <option value={3}>3個 (Hard)</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>順位点 対象者数</label>
-              <select
-                value={settings.rankTargets}
-                onChange={(e) => setSettings({ ...settings, rankTargets: parseInt(e.target.value) })}
-              >
-                <option value={1}>1人</option>
-                <option value={2}>2人</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>差しウマ 発生組数</label>
-              <select
-                value={settings.sashiumaPairs}
-                onChange={(e) => setSettings({ ...settings, sashiumaPairs: parseInt(e.target.value) })}
-              >
-                <option value={1}>1組</option>
-                <option value={2}>2組</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>点数条件 範囲</label>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input
-                  type="number"
-                  value={scoreMinInput}
-                  onChange={(e) => setScoreMinInput(e.target.value)}
-                  onBlur={() => commitScoreTarget('scoreTargetMin', scoreMinInput, setScoreMinInput)}
-                  style={{ padding: '0.5rem' }}
-                />
-                <span>〜</span>
-                <input
-                  type="number"
-                  value={scoreMaxInput}
-                  onChange={(e) => setScoreMaxInput(e.target.value)}
-                  onBlur={() => commitScoreTarget('scoreTargetMax', scoreMaxInput, setScoreMaxInput)}
-                  style={{ padding: '0.5rem' }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showSettings && <DifficultySettings />}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
         {localPlayers.map((p, index) => (
