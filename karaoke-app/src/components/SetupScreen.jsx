@@ -6,6 +6,19 @@ const SetupScreen = () => {
   const { players, startGame, settings, setSettings, resetGame } = useGameContext();
   const [localPlayers, setLocalPlayers] = useState(players);
   const [showSettings, setShowSettings] = useState(false);
+  const [scoreMinInput, setScoreMinInput] = useState(String(settings.scoreTargetMin ?? 85));
+  const [scoreMaxInput, setScoreMaxInput] = useState(String(settings.scoreTargetMax ?? 95));
+
+  // Keep the draft as text so users can clear and replace digits freely.
+  const commitScoreTarget = (key, input, setInput) => {
+    const value = input.trim() === '' ? NaN : Number(input);
+    if (Number.isInteger(value) && value >= 0) {
+      setSettings(prev => ({ ...prev, [key]: value }));
+      setInput(String(value));
+    } else {
+      setInput(String(settings[key] ?? (key === 'scoreTargetMin' ? 85 : 95)));
+    }
+  };
 
   const togglePlayer = (id) => {
     setLocalPlayers(localPlayers.map(p =>
@@ -109,15 +122,17 @@ const SetupScreen = () => {
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                 <input
                   type="number"
-                  value={settings.scoreTargetMin || 85}
-                  onChange={(e) => setSettings({ ...settings, scoreTargetMin: parseInt(e.target.value) || 85 })}
+                  value={scoreMinInput}
+                  onChange={(e) => setScoreMinInput(e.target.value)}
+                  onBlur={() => commitScoreTarget('scoreTargetMin', scoreMinInput, setScoreMinInput)}
                   style={{ padding: '0.5rem' }}
                 />
                 <span>〜</span>
                 <input
                   type="number"
-                  value={settings.scoreTargetMax || 95}
-                  onChange={(e) => setSettings({ ...settings, scoreTargetMax: parseInt(e.target.value) || 95 })}
+                  value={scoreMaxInput}
+                  onChange={(e) => setScoreMaxInput(e.target.value)}
+                  onBlur={() => commitScoreTarget('scoreTargetMax', scoreMaxInput, setScoreMaxInput)}
                   style={{ padding: '0.5rem' }}
                 />
               </div>
