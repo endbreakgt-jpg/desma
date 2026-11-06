@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGameContext } from '../store/GameContext';
+import DifficultySettings from './DifficultySettings';
 import { Download, ArrowRight, RotateCcw, Trophy, Skull, Settings2 } from 'lucide-react';
 
 const getConditionCategory = (condition) => {
@@ -22,7 +23,7 @@ const conditionSortOrder = (condition) => {
 };
 
 const ResultScreen = () => {
-  const { players, turns, penalties, settings, setSettings, nextTurn, resetGame } = useGameContext();
+  const { players, turns, penalties, nextTurn, resetGame } = useGameContext();
   const [showSettings, setShowSettings] = useState(false);
   
   if (turns.length === 0) return null;
@@ -99,62 +100,7 @@ const ResultScreen = () => {
         </div>
       </div>
 
-      {showSettings && (
-        <div className="glass-panel animate-fade-in" style={{ marginBottom: '2rem', background: 'rgba(0,0,0,0.3)' }}>
-          <h3 style={{ marginBottom: '1rem', color: 'var(--accent)' }}>GM用 難易度調整 (次回ターンから適用)</h3>
-          <div className="grid-cols-2">
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>最大テーマ数</label>
-              <select 
-                value={settings.themeMax} 
-                onChange={(e) => setSettings({...settings, themeMax: parseInt(e.target.value)})}
-              >
-                <option value={1}>1個 (Easy)</option>
-                <option value={2}>2個 (Normal)</option>
-                <option value={3}>3個 (Hard)</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>順位点 対象者数</label>
-              <select 
-                value={settings.rankTargets} 
-                onChange={(e) => setSettings({...settings, rankTargets: parseInt(e.target.value)})}
-              >
-                <option value={1}>1人</option>
-                <option value={2}>2人</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>差しウマ 発生組数</label>
-              <select 
-                value={settings.sashiumaPairs} 
-                onChange={(e) => setSettings({...settings, sashiumaPairs: parseInt(e.target.value)})}
-              >
-                <option value={1}>1組</option>
-                <option value={2}>2組</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-muted" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>点数条件 範囲</label>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input 
-                  type="number" 
-                  value={settings.scoreTargetMin || 85} 
-                  onChange={(e) => setSettings({...settings, scoreTargetMin: parseInt(e.target.value) || 85})}
-                  style={{ padding: '0.5rem' }}
-                />
-                <span>〜</span>
-                <input 
-                  type="number" 
-                  value={settings.scoreTargetMax || 95} 
-                  onChange={(e) => setSettings({...settings, scoreTargetMax: parseInt(e.target.value) || 95})}
-                  style={{ padding: '0.5rem' }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {showSettings && <DifficultySettings />}
 
       <div className="grid-cols-2" style={{ marginBottom: '2rem' }}>
         {/* Turn Scores & Penalties */}
