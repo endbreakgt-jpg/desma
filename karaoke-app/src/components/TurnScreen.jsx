@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useGameContext } from '../store/GameContext';
 import { generateTurnConditions, calculateTurnResults } from '../utils/gameLogic';
-import { Dice5, Target, Users, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Dice5, Target, AlertTriangle, CheckCircle2, Settings2, RefreshCw } from 'lucide-react';
+import DifficultySettings from './DifficultySettings';
 
 const TurnScreen = () => {
   const { players, settings, addTurnResult, turns } = useGameContext();
   const [conditions, setConditions] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   
   // State for inputs
   const [scores, setScores] = useState({});
@@ -56,6 +58,14 @@ const TurnScreen = () => {
     setPenalties(initialPenalties);
     setSongs(initialSongs);
   }, []);
+
+  const handleReroll = () => {
+    if (!window.confirm('このターンの発生条件をすべて再抽選します。入力済みの点数・曲名・ペナルティは維持します。よろしいですか？')) return;
+    const next = generateTurnConditions(players, settings, turns.length > 0);
+    setConditions(next);
+    // Keep existing theme entries where possible when the theme count changes.
+    setThemes(prev => Array.from({ length: next.themeCount }, (_, i) => prev[i] ?? ''));
+  };
 
   const handleScoreChange = (id, value) => {
     // Regex for up to 3 decimals
@@ -136,9 +146,22 @@ const TurnScreen = () => {
     <div className="animate-fade-in" style={{ maxWidth: '900px', margin: '0 auto' }}>
       <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
         <h2 className="subtitle" style={{ margin: 0 }}>ターン {turnIndex + 1}</h2>
-        <div className="badge badge-warning" style={{ fontSize: '1.1rem', padding: '8px 16px' }}>
-          親: {parentPlayer.name}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button className="btn btn-secondary" onClick={() => setShowSettings(prev => !prev)} aria-expanded={showSettings}>
+            <Settings2 size={18} /> 設定
+          </button>
+          <div className="badge badge-warning" style={{ fontSize: '1.1rem', padding: '8px 16px' }}>
+            親: {parentPlayer.name}
+          </div>
         </div>
+      </div>
+
+      {showSettings && <DifficultySettings duringTurn />}
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button className="btn btn-secondary" onClick={handleReroll} title="ターン数や入力済みデータを維持して条件を再抽選">
+          <RefreshCw size={18} /> 条件をリロール
+        </button>
       </div>
 
       <div className="grid-cols-2" style={{ marginBottom: '2rem' }}>
