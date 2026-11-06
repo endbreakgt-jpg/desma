@@ -1,0 +1,6 @@
+# Netlify build configuration for the Karaoke Deathmatch Vite app.
+# Keep the Netlify site pointed at karaoke-app rather than publishing source files.
+[build]
+  base = "karaoke-app"
+  command = "npm run build"
+  publish = "dist"
