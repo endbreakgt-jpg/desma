@@ -26,8 +26,8 @@ export const generateTurnConditions = (players, settings, hasPreviousTurns) => {
   const scoreType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
   conditions.scorePoint = { type: scoreType };
 
-  const minTarget = settings.scoreTargetMin || 85;
-  const maxTarget = settings.scoreTargetMax || 95;
+  const minTarget = settings.scoreTargetMin ?? 85;
+  const maxTarget = settings.scoreTargetMax ?? 95;
   const range = maxTarget - minTarget + 1;
 
   if (scoreType === 0) conditions.scorePoint.target = (Math.floor(Math.random() * range) + minTarget);
