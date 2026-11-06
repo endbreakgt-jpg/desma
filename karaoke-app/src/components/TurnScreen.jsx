@@ -41,7 +41,9 @@ const TurnScreen = () => {
 
   useEffect(() => {
     const hasPreviousTurns = turns.length > 0;
-    const conds = generateTurnConditions(players, settings, hasPreviousTurns);
+    const previousType = turns.at(-1)?.conditions?.scorePoint?.type;
+    const conds = generateTurnConditions(players, settings, hasPreviousTurns,
+      previousType === undefined ? [] : [previousType]);
     setConditions(conds);
     setThemes(Array(conds.themeCount).fill(''));
 
@@ -61,7 +63,9 @@ const TurnScreen = () => {
 
   const handleReroll = () => {
     if (!window.confirm('このターンの発生条件をすべて再抽選します。入力済みの点数・曲名・ペナルティは維持します。よろしいですか？')) return;
-    const next = generateTurnConditions(players, settings, turns.length > 0);
+    const previousType = turns.at(-1)?.conditions?.scorePoint?.type;
+    const excludedTypes = [previousType, conditions?.scorePoint?.type].filter(type => type !== undefined);
+    const next = generateTurnConditions(players, settings, turns.length > 0, excludedTypes);
     setConditions(next);
     // Keep existing theme entries where possible when the theme count changes.
     setThemes(prev => Array.from({ length: next.themeCount }, (_, i) => prev[i] ?? ''));
