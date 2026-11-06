@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useGameContext } from '../store/GameContext';
 
+const DEFAULT_SCORE_WEIGHTS = [2, 2, 2, 2, 2, 2, 2, 1, 1];
+
 const SCORE_CONDITIONS = [
   '指定点数以上', '指定点数以下', '指定点数±マージン以内',
   '指定プレイヤーより上', '指定プレイヤーより下',
@@ -13,10 +15,10 @@ const DifficultySettings = ({ duringTurn = false }) => {
   const { settings, setSettings } = useGameContext();
   const [minInput, setMinInput] = useState(String(settings.scoreTargetMin ?? 85));
   const [maxInput, setMaxInput] = useState(String(settings.scoreTargetMax ?? 95));
-  const [marginInput, setMarginInput] = useState(String(settings.scoreMargin ?? 2));
-  const weights = SCORE_CONDITIONS.map((_, i) => settings.scoreConditionWeights?.[i] ?? 1);
+  const [marginInput, setMarginInput] = useState(String(settings.scoreMargin ?? 5));
+  const weights = SCORE_CONDITIONS.map((_, i) => settings.scoreConditionWeights?.[i] ?? DEFAULT_SCORE_WEIGHTS[i]);
   const totalWeight = weights.reduce((sum, weight) => sum + (Number.isFinite(Number(weight)) && Number(weight) > 0 ? Number(weight) : 0), 0);
-  const [weightDrafts, setWeightDrafts] = useState(() => SCORE_CONDITIONS.map((_, i) => String(settings.scoreConditionWeights?.[i] ?? 1)));
+  const [weightDrafts, setWeightDrafts] = useState(() => SCORE_CONDITIONS.map((_, i) => String(settings.scoreConditionWeights?.[i] ?? DEFAULT_SCORE_WEIGHTS[i])));
   const update = (key, value) => setSettings(prev => ({ ...prev, [key]: value }));
 
   const commit = (key, draft, setter) => {
@@ -35,11 +37,11 @@ const DifficultySettings = ({ duringTurn = false }) => {
 
   const commitMargin = () => {
     const value = marginInput.trim() === '' ? NaN : Number(marginInput);
-    if (Number.isFinite(value) && value >= 0 && value <= 100 && /^\d+(?:\.\d{1,3})?$/.test(marginInput.trim())) {
+    if (Number.isInteger(value) && value >= 0 && value <= 100) {
       update('scoreMargin', value);
       setMarginInput(String(value));
     } else {
-      setMarginInput(String(settings.scoreMargin ?? 2));
+      setMarginInput(String(settings.scoreMargin ?? 5));
     }
   };
 
@@ -104,17 +106,17 @@ const DifficultySettings = ({ duringTurn = false }) => {
       </div>
       <div style={{ marginTop: '1.5rem' }}>
         <label className="text-muted" htmlFor="score-margin" style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem' }}>±条件のマージン値（点）</label>
-        <input id="score-margin" type="number" min="0" max="100" step="0.001" value={marginInput}
+        <input id="score-margin" type="number" min="0" max="100" step="1" value={marginInput}
           onChange={e => setMarginInput(e.target.value)} onBlur={commitMargin}
           style={{ padding: '0.5rem', maxWidth: '160px' }} />
         <div className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.4rem' }}>
-          例：2なら「90点±2点」（88.000〜92.000点）。変更後の抽選から適用されます。
+          例：初期値5なら「90点±5点」（85.000〜95.000点）。整数のみ設定できます。
         </div>
       </div>
       <div style={{ marginTop: '1.5rem' }}>
         <h4 style={{ marginBottom: '0.5rem', color: 'var(--accent)' }}>点数条件の出現重み</h4>
         <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
-          0は出現なし、1〜100で設定。各条件の出現確率は「重み ÷ 有効な条件の重み合計」です。初期値はすべて1（均等）。
+          0は出現なし、1〜100で設定。各条件の出現確率は「重み ÷ 有効な条件の重み合計」です。初期重みは最初の7条件が2、残り2条件が1。
           表示確率は2ターン目以降の目安です。初回ターンは自己最高・自己最低条件を除いて再計算されます。最初の7条件はすべて0にできません。
         </p>
         <div style={{ display: 'grid', gap: '0.65rem' }}>
@@ -133,11 +135,18 @@ const DifficultySettings = ({ duringTurn = false }) => {
             </div>
           ))}
         </div>
-        <button className="btn btn-secondary" style={{ marginTop: '0.9rem', padding: '0.5rem 0.8rem' }}
-          onClick={() => {
-            update('scoreConditionWeights', SCORE_CONDITIONS.map(() => 1));
-            setWeightDrafts(SCORE_CONDITIONS.map(() => '1'));
-          }}>重みを均等に戻す</button>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem', marginTop: '0.9rem' }}>
+          <button className="btn btn-secondary" style={{ padding: '0.5rem 0.8rem' }}
+            onClick={() => {
+              update('scoreConditionWeights', [...DEFAULT_SCORE_WEIGHTS]);
+              setWeightDrafts(DEFAULT_SCORE_WEIGHTS.map(String));
+            }}>重みを初期値に戻す</button>
+          <button className="btn btn-secondary" style={{ padding: '0.5rem 0.8rem' }}
+            onClick={() => {
+              update('scoreConditionWeights', SCORE_CONDITIONS.map(() => 1));
+              setWeightDrafts(SCORE_CONDITIONS.map(() => '1'));
+            }}>重みを均等に戻す</button>
+        </div>
       </div>
     </div>
   );
