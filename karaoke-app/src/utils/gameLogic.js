@@ -25,7 +25,7 @@ export const generateTurnConditions = (players, settings, hasPreviousTurns) => {
     : [0, 1, 2, 3, 4, 5, 6];
   // Weighted choice. Missing weights (old saved settings) default to 1.
   const candidates = availableTypes.map(type => {
-    const rawWeight = settings.scoreConditionWeights?.[type] ?? 1;
+    const rawWeight = settings.scoreConditionWeights?.[type] ?? (type < 7 ? 2 : 1);
     const weight = Number(rawWeight);
     return { type, weight: Number.isFinite(weight) && weight > 0 ? weight : 0 };
   });
@@ -51,7 +51,7 @@ export const generateTurnConditions = (players, settings, hasPreviousTurns) => {
   if (scoreType === 1) conditions.scorePoint.target = (Math.floor(Math.random() * range) + minTarget - 5);
   if (scoreType === 2) {
     conditions.scorePoint.target = (Math.floor(Math.random() * range) + minTarget);
-    conditions.scorePoint.margin = settings.scoreMargin ?? 2;
+    conditions.scorePoint.margin = settings.scoreMargin ?? 5;
   }
   if (scoreType === 3 || scoreType === 4) {
     conditions.scorePoint.targetPlayer = players[Math.floor(Math.random() * players.length)];
