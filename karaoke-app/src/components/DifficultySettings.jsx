@@ -35,7 +35,7 @@ const DifficultySettings = ({ duringTurn = false }) => {
 
   const commitMargin = () => {
     const value = marginInput.trim() === '' ? NaN : Number(marginInput);
-    if (Number.isFinite(value) && value >= 0 && value <= 100 && Math.round(value * 1000) === value * 1000) {
+    if (Number.isFinite(value) && value >= 0 && value <= 100 && /^\d+(?:\.\d{1,3})?$/.test(marginInput.trim())) {
       update('scoreMargin', value);
       setMarginInput(String(value));
     } else {
@@ -115,7 +115,7 @@ const DifficultySettings = ({ duringTurn = false }) => {
         <h4 style={{ marginBottom: '0.5rem', color: 'var(--accent)' }}>点数条件の出現重み</h4>
         <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
           0は出現なし、1〜100で設定。各条件の出現確率は「重み ÷ 有効な条件の重み合計」です。初期値はすべて1（均等）。
-          初回ターンは自己最高・自己最低条件を抽選しません。最初の7条件はすべて0にできません。
+          表示確率は2ターン目以降の目安です。初回ターンは自己最高・自己最低条件を除いて再計算されます。最初の7条件はすべて0にできません。
         </p>
         <div style={{ display: 'grid', gap: '0.65rem' }}>
           {SCORE_CONDITIONS.map((label, i) => (
