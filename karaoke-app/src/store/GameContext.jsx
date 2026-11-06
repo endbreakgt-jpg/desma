@@ -43,8 +43,8 @@ export const GameProvider = ({ children }) => {
     const previous = JSON.parse(saved);
     // Migrate the former untouched defaults without overwriting customized settings.
     const legacyWeights = previous.scoreConditionWeights;
-    const isLegacyWeights = Array.isArray(legacyWeights) &&
-      legacyWeights.length === 9 && legacyWeights.every(weight => weight === 1);
+    const isLegacyWeights = !Array.isArray(legacyWeights) ||
+      (legacyWeights.length === 9 && legacyWeights.every(weight => weight === 1));
     const isUntouchedLegacy = isLegacyWeights && previous.scoreMargin === 2;
     return {
       ...DEFAULT_SETTINGS,
